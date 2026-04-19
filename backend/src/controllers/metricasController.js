@@ -60,28 +60,18 @@ async function getMatriculasPorMes(req, res, next) {
       FROM matriculas m
       WHERE m.fecha_matricula >= DATE_SUB(NOW(), INTERVAL ? MONTH)
         AND m.estado != 'cancelada'
-      GROUP BY periodo, periodo_label
+      GROUP BY 
+        DATE_FORMAT(m.fecha_matricula, '%Y-%m'),
+        DATE_FORMAT(m.fecha_matricula, '%M %Y'),
+        m.fecha_matricula  -- <-- AGREGADO: columna base incluida
       ORDER BY periodo ASC
     `, [meses]);
 
-    // Calcular crecimiento mes a mes
-    const datosConCrecimiento = datos.map((fila, idx) => ({
-      ...fila,
-      total_matriculas: Number(fila.total_matriculas),
-      valor_total:      Number(fila.valor_total),
-      valor_promedio:   Number(fila.valor_promedio),
-      leads_ese_mes:    Number(fila.leads_ese_mes),
-      crecimiento_pct: idx === 0
-        ? 0
-        : datos[idx - 1].total_matriculas === 0
-          ? 100
-          : parseFloat(
-              ((fila.total_matriculas - datos[idx - 1].total_matriculas)
-               / datos[idx - 1].total_matriculas * 100).toFixed(2)
-            ),
-    }));
-
-    res.json({ meses_analizados: meses, datos: datosConCrecimiento });
+    res.json({
+      exito: true,
+      datos,
+      meses_consultados: meses
+    });
   } catch (error) {
     next(error);
   }

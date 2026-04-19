@@ -10,6 +10,7 @@ const { testConnection } = require('./config/db');
 const clientesRoutes     = require('./routes/clientes');
 const dashboardRoutes    = require('./routes/dashboard');
 const metricasRoutes     = require('./routes/metricas');
+const importRoutes       = require('./routes/import');
 const errorHandler       = require('./middleware/errorHandler');
 
 const app  = express();
@@ -51,6 +52,7 @@ app.use((req, _res, next) => {
 app.use('/api/clientes',  clientesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/metricas',  metricasRoutes);
+app.use('/api/v1/import', importRoutes);
 
 // Ruta de salud: útil para verificar que el servidor responde
 app.get('/api/health', (_req, res) => {
