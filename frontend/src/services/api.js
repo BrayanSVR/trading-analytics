@@ -58,4 +58,10 @@ export const getTiempoConversion = () =>
 export const getValorPorFuente = () =>
   api.get('/metricas/valor-por-fuente').then((r) => r.data);
 
+// ── Importación ───────────────────────────────────────────
+export const importarExcel = (formData) =>
+  api.post('/v1/import/excel', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then((r) => r.data);
+
 export default api;

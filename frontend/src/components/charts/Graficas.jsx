@@ -53,7 +53,7 @@ export function GraficaMatriculasMes({ datos = [] }) {
           </linearGradient>
         </defs>
         <CartesianGrid stroke="#1E3A5F" strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="mes_label" tick={AXIS_STYLE} axisLine={false} tickLine={false} />
+        <XAxis dataKey="periodo_label" tick={AXIS_STYLE} axisLine={false} tickLine={false} />
         <YAxis tick={AXIS_STYLE} axisLine={false} tickLine={false} />
         <Tooltip
           contentStyle={TOOLTIP_STYLE}
@@ -84,7 +84,7 @@ export function GraficaValorMes({ datos = [] }) {
           </linearGradient>
         </defs>
         <CartesianGrid stroke="#1E3A5F" strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="mes_label" tick={AXIS_STYLE} axisLine={false} tickLine={false} />
+        <XAxis dataKey="periodo_label" tick={AXIS_STYLE} axisLine={false} tickLine={false} />
         <YAxis tick={AXIS_STYLE} axisLine={false} tickLine={false} tickFormatter={formatCOP} />
         <Tooltip
           contentStyle={TOOLTIP_STYLE}

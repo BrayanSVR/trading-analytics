@@ -1,11 +1,17 @@
 // src/pages/Clientes.jsx
-import { useState, useEffect, useCallback } from 'react';
-import { getClientes } from '../services/api';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { getClientes, importarExcel } from '../services/api';
 import { LoadingSpinner, ErrorState } from '../components/LoadingState';
 
-const FUENTES   = ['Facebook','Instagram','Pagina Web','Referido','Google Ads','Email Marketing','WhatsApp','Otro'];
-const ESTADOS   = ['lead','matriculado','inactivo','rechazado'];
-const COLOR_EST = { lead: 'blue', matriculado: 'green', rechazado: 'red', inactivo: 'amber' };
+const FUENTES = ['Facebook Lead Ads: DIR_CAL_FORM - WSP', 'Instagram', 'Pagina Web', 'Referido', 'Google Ads', 'Email Marketing', 'WhatsApp', 'Otro'];
+const ESTADOS = ['Contactado', 'No contactado', 'Equivocado/Errado', 'Cerrado', 'Matriculado'];
+const COLOR_EST = {
+  'Contactado': 'blue',
+  'No contactado': 'amber',
+  'Equivocado/Errado': 'red',
+  'Cerrado': 'red',
+  'Matriculado': 'green'
+};
 
 function BadgeEstado({ estado }) {
   const c = COLOR_EST[estado] || 'blue';
@@ -13,14 +19,38 @@ function BadgeEstado({ estado }) {
 }
 
 function Clientes() {
-  const [datos,    setDatos]    = useState(null);
+  const [datos, setDatos] = useState(null);
   const [cargando, setCargando] = useState(true);
-  const [error,    setError]    = useState(null);
-  const [buscar,   setBuscar]   = useState('');
-  const [estado,   setEstado]   = useState('');
-  const [fuente,   setFuente]   = useState('');
-  const [pagina,   setPagina]   = useState(1);
+  const [error, setError] = useState(null);
+  const [buscar, setBuscar] = useState('');
+  const [estado, setEstado] = useState('');
+  const [fuente, setFuente] = useState('');
+  const [pagina, setPagina] = useState(1);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [importando, setImportando] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleImportar = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportando(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('mode', 'upsert');
+
+    try {
+      const res = await importarExcel(formData);
+      const c = res.summary?.clientes || { inserted: 0, updated: 0 };
+      alert(`✅ Importación exitosa:\n\nClientes: ${c.inserted} insertados, ${c.updated} actualizados.`);
+      cargar(); // Recargar tabla
+    } catch (err) {
+      alert(`❌ Error en importación:\n${err.message}`);
+    } finally {
+      setImportando(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -40,7 +70,7 @@ function Clientes() {
   useEffect(() => { setPagina(1); }, [buscar, estado, fuente]);
 
   const formatFecha = (f) =>
-    new Date(f).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'2-digit' });
+    new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' });
 
   if (error) return <ErrorState mensaje={error} onReintentar={cargar} />;
 
@@ -56,20 +86,44 @@ function Clientes() {
             {datos ? `${datos.paginacion.total} registros encontrados` : 'Cargando...'}
           </p>
         </div>
-        <button
-          onClick={() => setMostrarForm(!mostrarForm)}
-          style={{
-            background: 'linear-gradient(135deg, #00D4AA, #3B82F6)',
-            color: '#0A0F1E', border: 'none', borderRadius: 8,
-            padding: '10px 20px', cursor: 'pointer', fontSize: 13,
-            fontWeight: 700, fontFamily: 'Space Grotesk, sans-serif',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => e.target.style.opacity = '0.85'}
-          onMouseLeave={(e) => e.target.style.opacity = '1'}
-        >
-          + Nuevo Lead
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImportar}
+            accept=".xlsx, .xls"
+            style={{ display: 'none' }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importando}
+            style={{
+              background: 'rgba(59,130,246,0.1)',
+              color: '#3B82F6', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 8,
+              padding: '10px 20px', cursor: importando ? 'not-allowed' : 'pointer', fontSize: 13,
+              fontWeight: 700, fontFamily: 'Space Grotesk, sans-serif',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => { if (!importando) e.target.style.background = 'rgba(59,130,246,0.2)'; }}
+            onMouseLeave={(e) => { if (!importando) e.target.style.background = 'rgba(59,130,246,0.1)'; }}
+          >
+            {importando ? '⏳ Importando...' : '📥 Importar Excel'}
+          </button>
+          <button
+            onClick={() => setMostrarForm(!mostrarForm)}
+            style={{
+              background: 'linear-gradient(135deg, #00D4AA, #3B82F6)',
+              color: '#0A0F1E', border: 'none', borderRadius: 8,
+              padding: '10px 20px', cursor: 'pointer', fontSize: 13,
+              fontWeight: 700, fontFamily: 'Space Grotesk, sans-serif',
+              transition: 'opacity 0.2s',
+            }}
+            onMouseEnter={(e) => e.target.style.opacity = '0.85'}
+            onMouseLeave={(e) => e.target.style.opacity = '1'}
+          >
+            + Nuevo Lead
+          </button>
+        </div>
       </div>
 
       {/* Formulario nuevo lead */}
@@ -87,7 +141,7 @@ function Clientes() {
           />
           <select value={estado} onChange={(e) => setEstado(e.target.value)} style={selectStyle}>
             <option value="">Todos los estados</option>
-            {ESTADOS.map((e) => <option key={e} value={e}>{e.charAt(0).toUpperCase()+e.slice(1)}</option>)}
+            {ESTADOS.map((e) => <option key={e} value={e}>{e.charAt(0).toUpperCase() + e.slice(1)}</option>)}
           </select>
           <select value={fuente} onChange={(e) => setFuente(e.target.value)} style={selectStyle}>
             <option value="">Todas las fuentes</option>
@@ -110,7 +164,7 @@ function Clientes() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.2)' }}>
-                  {['ID','Cliente','Fuente','Estado','Fecha Registro','Curso','Días Conversión'].map((h) => (
+                  {['HubSpot ID', 'Cliente', 'Ciudad', 'Estado', 'Sede', 'Programa', 'Propietario', 'Conversión Reciente'].map((h) => (
                     <th key={h} style={{ padding: '12px 16px', textAlign: 'left', color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, whiteSpace: 'nowrap' }}>
                       {h}
                     </th>
@@ -120,7 +174,7 @@ function Clientes() {
               <tbody>
                 {datos?.datos?.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
+                    <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
                       No se encontraron clientes con esos filtros
                     </td>
                   </tr>
@@ -131,28 +185,26 @@ function Clientes() {
                     onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,212,170,0.03)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--muted)', fontSize: 11 }}>#{c.id}</td>
+                    <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--muted)', fontSize: 11 }}>{c.hubspot_id || `#${c.id}`}</td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ fontWeight: 600, color: 'var(--text)' }}>{c.nombre_completo}</div>
                       <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{c.email}</div>
                     </td>
                     <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11 }}>
-                      <span style={{ padding: '2px 8px', background: 'rgba(59,130,246,0.08)', borderRadius: 12, border: '1px solid rgba(59,130,246,0.15)', color: '#3B82F6', fontSize: 10, fontWeight: 600 }}>
-                        {c.fuente}
-                      </span>
+                      {c.ciudad || '—'}
                     </td>
-                    <td style={{ padding: '12px 16px' }}><BadgeEstado estado={c.estado} /></td>
-                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
-                      {formatFecha(c.fecha_registro)}
+                    <td style={{ padding: '12px 16px' }}><BadgeEstado estado={c.estado_lead || 'Nuevo'} /></td>
+                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11 }}>
+                      {c.sede || '—'}
                     </td>
                     <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11 }}>
-                      {c.curso || <span style={{ opacity: 0.4 }}>—</span>}
+                      {c.programa || <span style={{ opacity: 0.4 }}>—</span>}
                     </td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
-                      {c.dias_para_matricularse !== null
-                        ? <span style={{ color: 'var(--amber)' }}>{c.dias_para_matricularse}d</span>
-                        : <span style={{ opacity: 0.3 }}>—</span>
-                      }
+                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11 }}>
+                      {c.propietario || '—'}
+                    </td>
+                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11 }}>
+                      {c.conversion_reciente || '—'}
                     </td>
                   </tr>
                 ))}
@@ -168,7 +220,7 @@ function Clientes() {
               Pág. {datos.paginacion.pagina} / {datos.paginacion.total_paginas}
             </span>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <BtnPagina label="← Anterior" disabled={pagina === 1}      onClick={() => setPagina(p => p - 1)} />
+              <BtnPagina label="← Anterior" disabled={pagina === 1} onClick={() => setPagina(p => p - 1)} />
               <BtnPagina label="Siguiente →" disabled={pagina === datos.paginacion.total_paginas} onClick={() => setPagina(p => p + 1)} />
             </div>
           </div>
@@ -196,7 +248,7 @@ function BtnPagina({ label, disabled, onClick }) {
 
 // ── Formulario nuevo lead ────────────────────────────────────
 function FormNuevoLead({ onGuardado, onCancelar }) {
-  const [form, setForm] = useState({ nombre:'', apellido:'', email:'', telefono:'', fuente:'Facebook', campaña:'', valor_potencial:'' });
+  const [form, setForm] = useState({ nombre: '', apellido: '', email: '', telefono: '', fuente: 'Facebook', campaña: '', valor_potencial: '' });
   const [guardando, setGuardando] = useState(false);
   const [errorForm, setErrorForm] = useState('');
 
@@ -222,7 +274,7 @@ function FormNuevoLead({ onGuardado, onCancelar }) {
   const campo = (k, label, type = 'text') => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <label style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
-      <input type={type} value={form[k]} onChange={(e) => setForm(f => ({...f, [k]: e.target.value}))} style={inputStyle} />
+      <input type={type} value={form[k]} onChange={(e) => setForm(f => ({ ...f, [k]: e.target.value }))} style={inputStyle} />
     </div>
   );
 
@@ -232,17 +284,17 @@ function FormNuevoLead({ onGuardado, onCancelar }) {
         Registrar nuevo lead
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-        {campo('nombre',    'Nombre')}
-        {campo('apellido',  'Apellido')}
-        {campo('email',     'Email', 'email')}
-        {campo('telefono',  'Teléfono')}
+        {campo('nombre', 'Nombre')}
+        {campo('apellido', 'Apellido')}
+        {campo('email', 'Email', 'email')}
+        {campo('telefono', 'Teléfono')}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <label style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fuente</label>
-          <select value={form.fuente} onChange={(e) => setForm(f => ({...f, fuente: e.target.value}))} style={selectStyle}>
+          <select value={form.fuente} onChange={(e) => setForm(f => ({ ...f, fuente: e.target.value }))} style={selectStyle}>
             {FUENTES.map(f => <option key={f}>{f}</option>)}
           </select>
         </div>
-        {campo('campaña',         'Campaña')}
+        {campo('campaña', 'Campaña')}
         {campo('valor_potencial', 'Valor Potencial', 'number')}
       </div>
       {errorForm && <p style={{ color: '#EF4444', fontSize: 12, marginBottom: '0.75rem' }}>{errorForm}</p>}
