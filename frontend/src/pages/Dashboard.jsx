@@ -75,6 +75,52 @@ function TablaFuentes({ fuentes = [] }) {
   );
 }
 
+// ── Tabla de Propietarios ────────────────────────────────────
+function TablaPropietarios({ propietarios = [] }) {
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid var(--border)' }}>
+            {['Propietario', 'Leads Asignados', 'Matriculados', 'Prom. Contactos', 'Tasa Conv.'].map((h) => (
+              <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {propietarios.map((p, i) => (
+            <tr key={i} style={{ borderBottom: '1px solid rgba(30,58,95,0.5)', transition: 'background 0.15s' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,212,170,0.03)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <td style={{ padding: '10px 12px', color: 'var(--text)', fontWeight: 600 }}>{p.propietario}</td>
+              <td style={{ padding: '10px 12px', color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace' }}>{p.total_leads}</td>
+              <td style={{ padding: '10px 12px' }}>
+                <span className="badge badge-green">{p.matriculados}</span>
+              </td>
+              <td style={{ padding: '10px 12px', color: 'var(--amber)', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>
+                {p.prom_contactos}
+              </td>
+              <td style={{ padding: '10px 12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 2, maxWidth: 60 }}>
+                    <div style={{ height: '100%', width: `${Math.min(p.tasa_conversion, 100)}%`, background: 'var(--green)', borderRadius: 2 }} />
+                  </div>
+                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--green)' }}>
+                    {p.tasa_conversion}%
+                  </span>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // ── Página principal ─────────────────────────────────────────
 function Dashboard() {
   const { datos, cargando, error, recargar } = useDashboard();
@@ -215,6 +261,15 @@ function Dashboard() {
               📊 Detalle por canal
             </p>
             <TablaFuentes fuentes={datos?.distribucion_fuentes || []} />
+          </div>
+        )}
+      </Seccion>
+
+      {/* ── Rendimiento por Propietario ── */}
+      <Seccion titulo="Rendimiento del Equipo" subtitulo="Gestión de leads por propietario">
+        {!cargando && (
+          <div className="card">
+            <TablaPropietarios propietarios={datos?.top_propietarios || []} />
           </div>
         )}
       </Seccion>

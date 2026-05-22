@@ -9,6 +9,7 @@ async function getDashboard(req, res, next) {
       topCursosResult,
       tiempoConversionResult,
       tendencia7DiasResult,
+      topPropietariosResult,
     ] = await Promise.all([
       pool.query(`
         SELECT
@@ -73,6 +74,18 @@ async function getDashboard(req, res, next) {
         GROUP BY dia, dia_label
         ORDER BY dia ASC
       `),
+      pool.query(`
+        SELECT
+          COALESCE(propietario, 'Sin Asignar')  AS propietario,
+          COUNT(*)                              AS total_leads,
+          SUM(fecha_conversion IS NOT NULL)     AS matriculados,
+          ROUND(AVG(veces_contactado), 1)       AS prom_contactos,
+          ROUND(SUM(fecha_conversion IS NOT NULL) / COUNT(*) * 100, 2) AS tasa_conversion
+        FROM clientes
+        GROUP BY propietario
+        ORDER BY total_leads DESC
+        LIMIT 5
+      `),
     ]);
 
     const resumen          = resumenResult[0][0];
@@ -81,6 +94,7 @@ async function getDashboard(req, res, next) {
     const topCursos        = topCursosResult[0];
     const tiempoConversion = tiempoConversionResult[0][0];
     const tendencia7Dias   = tendencia7DiasResult[0];
+    const topPropietarios  = topPropietariosResult[0];
 
     res.json({
       resumen: {
@@ -100,6 +114,7 @@ async function getDashboard(req, res, next) {
         dias_maximo:   Number(tiempoConversion?.dias_maximo || 0),
       },
       tendencia_7_dias:      tendencia7Dias,
+      top_propietarios:      topPropietarios,
       generado_en:           new Date().toISOString(),
     });
   } catch (error) {

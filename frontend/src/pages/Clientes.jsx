@@ -164,7 +164,7 @@ function Clientes() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.2)' }}>
-                  {['HubSpot ID', 'Cliente', 'Ciudad', 'Estado', 'Sede', 'Programa', 'Propietario', 'Conversión Reciente'].map((h) => (
+                  {['HubSpot ID', 'Cliente', 'Ciudad', 'Estado', 'Sede', 'Programa', 'Propietario', 'Conversión', 'Contactado', 'Acciones', 'Última Actividad'].map((h) => (
                     <th key={h} style={{ padding: '12px 16px', textAlign: 'left', color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, whiteSpace: 'nowrap' }}>
                       {h}
                     </th>
@@ -174,7 +174,7 @@ function Clientes() {
               <tbody>
                 {datos?.datos?.length === 0 && (
                   <tr>
-                    <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
+                    <td colSpan={11} style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
                       No se encontraron clientes con esos filtros
                     </td>
                   </tr>
@@ -187,7 +187,7 @@ function Clientes() {
                   >
                     <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--muted)', fontSize: 11 }}>{c.hubspot_id || `#${c.id}`}</td>
                     <td style={{ padding: '12px 16px' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text)' }}>{c.nombre_completo}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>{c.nombre_completo}</div>
                       <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{c.email}</div>
                     </td>
                     <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11 }}>
@@ -197,14 +197,23 @@ function Clientes() {
                     <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11 }}>
                       {c.sede || '—'}
                     </td>
-                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11 }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.programa}>
                       {c.programa || <span style={{ opacity: 0.4 }}>—</span>}
                     </td>
-                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11 }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--text)', fontWeight: 600, fontSize: 11 }}>
                       {c.propietario || '—'}
                     </td>
-                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11 }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.conversion_reciente}>
                       {c.conversion_reciente || '—'}
+                    </td>
+                    <td style={{ padding: '12px 16px', color: 'var(--amber)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600 }}>
+                      {c.veces_contactado !== null && c.veces_contactado !== undefined ? `${c.veces_contactado} veces` : '—'}
+                    </td>
+                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: 11, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.acciones}>
+                      {c.acciones || '—'}
+                    </td>
+                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
+                      {c.ultima_actividad ? formatFecha(c.ultima_actividad) : '—'}
                     </td>
                   </tr>
                 ))}
