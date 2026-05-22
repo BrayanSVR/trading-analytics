@@ -1,5 +1,6 @@
 // src/components/Sidebar.jsx
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const NAV_ITEMS = [
   { to: '/',           icono: '⬛', label: 'Dashboard'    },
@@ -10,6 +11,14 @@ const NAV_ITEMS = [
 ];
 
 function Sidebar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <aside style={{
       width: 220,
@@ -88,11 +97,32 @@ function Sidebar() {
         ))}
       </nav>
 
-      {/* Footer */}
+      {/* Footer / User info */}
       <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--border)' }}>
-        <p style={{ margin: 0, fontSize: 10, color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-          v1.0.0 · Prácticas 2024
-        </p>
+        {user && (
+          <div style={{ marginBottom: '1rem' }}>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>
+              {user.email.split('@')[0]}
+            </p>
+            <p style={{ margin: 0, fontSize: 11, color: 'var(--muted)', textTransform: 'capitalize' }}>
+              Rol: {user.role}
+            </p>
+          </div>
+        )}
+        <button 
+          onClick={handleLogout}
+          style={{
+            width: '100%', padding: '0.5rem', borderRadius: 6,
+            background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444',
+            border: '1px solid rgba(239, 68, 68, 0.2)', cursor: 'pointer',
+            fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', gap: '0.5rem', transition: 'background 0.2s'
+          }}
+          onMouseOver={(e) => e.target.style.background = 'rgba(239, 68, 68, 0.2)'}
+          onMouseOut={(e) => e.target.style.background = 'rgba(239, 68, 68, 0.1)'}
+        >
+          <span>🚪</span> Salir
+        </button>
       </div>
 
       <style>{`

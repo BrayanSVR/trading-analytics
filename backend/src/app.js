@@ -7,10 +7,12 @@ const cors     = require('cors');
 require('dotenv').config();
 
 const { testConnection } = require('./config/db');
+const authRoutes       = require('./routes/auth');
 const clientesRoutes     = require('./routes/clientes');
 const dashboardRoutes    = require('./routes/dashboard');
 const metricasRoutes     = require('./routes/metricas');
 const importRoutes       = require('./routes/import');
+const { verifyToken }    = require('./middleware/auth');
 const errorHandler       = require('./middleware/errorHandler');
 
 const app  = express();
@@ -49,10 +51,14 @@ app.use((req, _res, next) => {
 // ============================================================
 // RUTAS DE LA API
 // ============================================================
-app.use('/api/clientes',  clientesRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/metricas',  metricasRoutes);
-app.use('/api/v1/import', importRoutes);
+// Rutas públicas
+app.use('/api/auth', authRoutes);
+
+// Rutas protegidas (requieren token)
+app.use('/api/clientes',  verifyToken, clientesRoutes);
+app.use('/api/dashboard', verifyToken, dashboardRoutes);
+app.use('/api/metricas',  verifyToken, metricasRoutes);
+app.use('/api/v1/import', verifyToken, importRoutes);
 
 // Ruta de salud: útil para verificar que el servidor responde
 app.get('/api/health', (_req, res) => {

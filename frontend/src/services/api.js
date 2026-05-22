@@ -15,10 +15,27 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Interceptor de respuesta: loguear errores centralmente
+// Interceptor de petición: inyectar token JWT
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+// Interceptor de respuesta: manejar errores 401 centralmente y loguear
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Si el error es 401 (No autorizado), cerramos sesión automáticamente
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    
     const msg = error.response?.data?.error || error.message;
     console.error(`[API Error] ${error.config?.url}: ${msg}`);
     return Promise.reject(error);
