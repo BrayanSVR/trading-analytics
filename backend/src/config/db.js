@@ -10,13 +10,13 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// Crear el pool de conexiones
+// Crear el pool de conexiones (soporta variables locales y variables automáticas de Railway)
 const pool = mysql.createPool({
-  host:            process.env.DB_HOST     || 'localhost',
-  port:            process.env.DB_PORT     || 3306,
-  user:            process.env.DB_USER     || 'root',
-  password:        process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : 'enero201998',
-  database:        process.env.DB_NAME     || 'trading_analytics',
+  host:            process.env.DB_HOST     || process.env.MYSQLHOST     || 'localhost',
+  port:            process.env.DB_PORT     || process.env.MYSQLPORT     || 3306,
+  user:            process.env.DB_USER     || process.env.MYSQLUSER     || 'root',
+  password:        process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : (process.env.MYSQLPASSWORD !== undefined ? process.env.MYSQLPASSWORD : 'enero201998'),
+  database:        process.env.DB_NAME     || process.env.MYSQLDATABASE || 'trading_analytics',
   waitForConnections: true,   // Espera si no hay conexiones libres
   connectionLimit: 10,        // Máximo 10 conexiones simultáneas
   queueLimit:      0,         // Sin límite en la cola de espera
