@@ -6,8 +6,13 @@
 import axios from 'axios';
 
 // En desarrollo, Vite redirige /api → http://localhost:4000
-// Aseguramos que el BASE_URL termine en barra '/' para evitar que Axios ignore el prefijo '/api' en producción
-const rawBaseUrl = import.meta.env.VITE_API_URL || '/api';
+// Aseguramos que el BASE_URL termine en barra '/' y que incluya '/api' si el usuario lo olvidó en las variables de Railway
+let rawBaseUrl = import.meta.env.VITE_API_URL || '/api';
+
+if (rawBaseUrl.startsWith('http') && !rawBaseUrl.includes('/api')) {
+  rawBaseUrl = rawBaseUrl.replace(/\/$/, '') + '/api';
+}
+
 const BASE_URL = rawBaseUrl.endsWith('/') ? rawBaseUrl : `${rawBaseUrl}/`;
 
 const api = axios.create({
