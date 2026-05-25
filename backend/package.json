@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "test": "echo \"Sin tests aún\" && exit 0"
+    "test": "echo \"Sin tests aún\" && exit 0",
+    "create-admin": "node src/scripts/create-admin.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
