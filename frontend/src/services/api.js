@@ -6,8 +6,9 @@
 import axios from 'axios';
 
 // En desarrollo, Vite redirige /api → http://localhost:4000
-// En producción, cambia esta variable en .env
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Aseguramos que el BASE_URL termine en barra '/' para evitar que Axios ignore el prefijo '/api' en producción
+const rawBaseUrl = import.meta.env.VITE_API_URL || '/api';
+const BASE_URL = rawBaseUrl.endsWith('/') ? rawBaseUrl : `${rawBaseUrl}/`;
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -44,40 +45,40 @@ api.interceptors.response.use(
 
 // ── Dashboard ─────────────────────────────────────────────
 export const getDashboard = () =>
-  api.get('/dashboard').then((r) => r.data);
+  api.get('dashboard').then((r) => r.data);
 
 // ── Clientes ──────────────────────────────────────────────
 export const getClientes = (params = {}) =>
-  api.get('/clientes', { params }).then((r) => r.data);
+  api.get('clientes', { params }).then((r) => r.data);
 
 export const getClientePorId = (id) =>
-  api.get(`/clientes/${id}`).then((r) => r.data);
+  api.get(`clientes/${id}`).then((r) => r.data);
 
 export const crearCliente = (datos) =>
-  api.post('/clientes', datos).then((r) => r.data);
+  api.post('clientes', datos).then((r) => r.data);
 
 export const actualizarCliente = (id, datos) =>
-  api.put(`/clientes/${id}`, datos).then((r) => r.data);
+  api.put(`clientes/${id}`, datos).then((r) => r.data);
 
 // ── Métricas ──────────────────────────────────────────────
 export const getMetricasFuentes = () =>
-  api.get('/metricas/fuentes').then((r) => r.data);
+  api.get('metricas/fuentes').then((r) => r.data);
 
 export const getMatriculasPorMes = (meses = 6) =>
-  api.get('/metricas/matriculas-mes', { params: { meses } }).then((r) => r.data);
+  api.get('metricas/matriculas-mes', { params: { meses } }).then((r) => r.data);
 
 export const getMetricasConversion = () =>
-  api.get('/metricas/conversion').then((r) => r.data);
+  api.get('metricas/conversion').then((r) => r.data);
 
 export const getTiempoConversion = () =>
-  api.get('/metricas/tiempo-conversion').then((r) => r.data);
+  api.get('metricas/tiempo-conversion').then((r) => r.data);
 
 export const getValorPorFuente = () =>
-  api.get('/metricas/valor-por-fuente').then((r) => r.data);
+  api.get('metricas/valor-por-fuente').then((r) => r.data);
 
 // ── Importación ───────────────────────────────────────────
 export const importarExcel = (formData) =>
-  api.post('/v1/import/excel', formData, {
+  api.post('v1/import/excel', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }).then((r) => r.data);
 

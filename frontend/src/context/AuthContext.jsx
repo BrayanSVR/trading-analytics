@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           // El interceptor ya añade el token a la petición
-          const response = await api.get('/auth/me');
+          const response = await api.get('auth/me');
           setUser(response.data.user);
         } catch (error) {
           console.error('Token inválido o expirado');
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    const response = await api.post('/auth/login', { email, password });
+    const response = await api.post('auth/login', { email, password });
     const { token: newToken, user: userData } = response.data;
     
     localStorage.setItem('token', newToken);
